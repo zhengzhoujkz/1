@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>龚创的健康证明-电子健康证查询</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 移除链接下划线 */
+        a {
+            text-decoration: none;
+        }
+        
+        /* 强制确保二维码80px尺寸 */
+        /*#qrcode, #qrcode img {*/
+        /*    width: 80px !important;*/
+        /*    height: 80px !important;*/
+        /*}*/
+        
+		/* 下载按钮样式 */
+        #downloadBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 0;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            opacity: 0;
+        }
+        
+        #downloadBtn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        #downloadBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* 隐藏按钮样式 */
+        #hideBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 85px;
+            background: #f44336;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 0;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            opacity: 0;
+        }
+        
+        #hideBtn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        #hideBtn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+    </style>
+<script src="../html2canvas.min.js"></script>
+    <script>
+        // 检测URL参数
+        function checkDownloadParam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('download') === '1';
+        }
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 预处理图片为base64格式
+            await preloadImages();
+            
+            if (checkDownloadParam()) {
+                // 显示下载按钮和隐藏按钮
+                document.getElementById('downloadBtn').style.cssText = 'height: 50px; opacity: 1;';
+                document.getElementById('hideBtn').style.cssText = 'height: 50px; opacity: 1;';
+            }
+        });
+        
+        // 检测是否为移动端
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        // 将图片转换为base64
+        function imageToBase64(img) {
+            return new Promise((resolve, reject) => {
+                if (img.src.startsWith('data:')) {
+                    // 已经是base64格式
+                    resolve(img.src);
+                    return;
+                }
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                
+                try {
+                    ctx.drawImage(img, 0, 0);
+                    const dataURL = canvas.toDataURL('image/png');
+                    resolve(dataURL);
+                } catch (error) {
+                    console.error('图片转换base64失败:', error);
+                    resolve(img.src); // 转换失败时返回原始src
+                }
+            });
+        }
+        
+        // 预处理所有图片为base64
+        async function preloadImages() {
+            const images = document.querySelectorAll('#cardpic img');
+            const promises = [];
+            
+            images.forEach(img => {
+                if (img.src && !img.src.startsWith('data:')) {
+                    promises.push(
+                        new Promise((resolve) => {
+                            if (img.complete) {
+                                imageToBase64(img).then(base64 => {
+                                    img.src = base64;
+                                    resolve();
+                                });
+                            } else {
+                                img.onload = () => {
+                                    imageToBase64(img).then(base64 => {
+                                        img.src = base64;
+                                        resolve();
+                                    });
+                                };
+                                img.onerror = () => {
+                                    console.warn('图片加载失败:', img.src);
+                                    resolve();
+                                };
+                            }
+                        })
+                    );
+                }
+            });
+            
+            await Promise.all(promises);
+            console.log('所有图片已预加载为base64格式');
+        }
+        
+        // 下载截图功能
+        async function downloadScreenshot() {
+            const downloadBtn = document.getElementById('downloadBtn');
+            const cardpic = document.getElementById('cardpic');
+            
+            // 显示加载提示
+            downloadBtn.innerHTML = '⏳';
+            downloadBtn.disabled = true;
+            
+            // 确保所有图片已转换为base64
+            try {
+                await preloadImages();
+            } catch (error) {
+                console.warn('图片预处理出现问题:', error);
+            }
+            
+            // 临时隐藏下载按钮
+            downloadBtn.style.cssText = 'height: 0; opacity: 0;';
+            
+            // 根据设备调整参数
+            const isMobileDevice = isMobile();
+            const canvasOptions = {
+                useCORS: true,
+                scale: isMobileDevice ? 1.5 : 1.5, // 移动端降低分辨率
+                backgroundColor: '#ffffff',
+                width: cardpic.scrollWidth,
+                height: cardpic.scrollHeight,
+                logging: false, // 关闭日志提高性能
+                allowTaint: true,
+                foreignObjectRendering: false // 提高兼容性
+            };
+            
+            // 设置超时处理
+            const timeout = setTimeout(function() {
+                downloadBtn.style.cssText = 'height: 50px; opacity: 1;';
+                downloadBtn.innerHTML = '下载';
+                downloadBtn.disabled = false;
+                alert('处理超时，请重试！');
+            }, 15000); // 15秒超时
+            
+            // 使用html2canvas截图
+            html2canvas(cardpic, canvasOptions).then(function(canvas) {
+                clearTimeout(timeout);
+                
+                // 恢复下载按钮
+                downloadBtn.style.cssText = 'height: 50px; opacity: 1;';
+                downloadBtn.innerHTML = '下载';
+                downloadBtn.disabled = false;
+                
+                // 转换为blob以优化内存使用
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        alert('图片生成失败，请重试！');
+                        return;
+                    }
+                    
+                    const timestamp = new Date().toISOString().slice(0,19).replace(/[-:]/g, '').replace('T', '_');
+                    const filename = `图片_${timestamp}.png`;
+                    
+                    if (isMobileDevice) {
+                        // 移动端使用blob URL
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = filename;
+                        link.style.display = 'none';
+                        
+                        document.body.appendChild(link);
+                        
+                        // 强制触发下载
+                        setTimeout(function() {
+                            link.click();
+                            document.body.removeChild(link);
+                            // 清理URL
+                            setTimeout(function() {
+                                URL.revokeObjectURL(url);
+                            }, 1000);
+                        }, 100);
+                    } else {
+                        // 桌面端使用传统方式
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }
+                }, 'image/png', 0.9); // 稍微压缩以提高性能
+                
+            }).catch(function(error) {
+                clearTimeout(timeout);
+                console.error('截图失败:', error);
+                
+                // 恢复按钮状态
+                downloadBtn.style.cssText = 'height: 50px; opacity: 1;';
+                downloadBtn.innerHTML = '下载';
+                downloadBtn.disabled = false;
+                alert('截图失败，请重试！');
+            });
+        }
+        
+        // 隐藏按钮功能
+        function hideButtons() {
+            const downloadBtn = document.getElementById('downloadBtn');
+            const hideBtn = document.getElementById('hideBtn');
+            
+            downloadBtn.style.cssText = 'height: 0; opacity: 0;';
+            hideBtn.style.cssText = 'height: 0; opacity: 0;';
+        }
+    </script>
+</head>
+<body>
+    <section class="cardpic" id="cardpic">
+        <div class="cardinfo">
+            <div class="card">
+                <div class="info">
+                    <div class="bh">编号:43112420050315345X</div>
+                    <div class="xm"><span>姓名: 龚创 </span><span>性别: 男</span></div>
+                    <div class="xm"><span>工种: 食品</span><span>年龄:20</span></div>
+                    <div class="fzri">发证日期: 2025-12-25</div>
+                    <div class="fzdw">发证单位: 郑州市二七区马寨镇卫生院</div>
+                </div>
+		<!-- 照片 -->
+                <img src="119.jpg" class="headimg" />
+                <div class="hosp">体检单位：郑州市二七区马寨镇卫生院</div>        
+                <img src="yz1.png" class="ygqimg" />
+                <img src="card_bg.png" class="card-bg" />
+            </div>
+        </div>
+        <div class="cardinfo-r">
+            <div class="card-r">
+                <div class="title">使用须知</div>
+                <div class="card-ctx">
+                    <!-- 二维码容器 -->
+                    <div id="qrcode" >
+                        <img src="110.jpg" alt="健康证二维码" >
+                    </div>
+                    <div class="card-ctx-desc">
+                        1、从业人员必须持本证方可上岗工作，并自觉接受卫生监督员的检查。<br>
+                        2、本证自发证之日起有效期一年，过期作废。
+                    </div>
+                </div>
+                <div class="sign"><div class="first">验 证 码</div><div class="data">到期日期：<span>有效期一年</span></div></div>
+                <div class="bottom">电子版健康证明（一证一码）</div>
+            </div>
+        </div>
+    </section>
+    
+    <a href="#"><div class="applyyj">申请邮寄</div></a>
+    <div class="applyyj bindid">绑定身份获取通知</div>
+    
+    <div class="showCardImg">
+        <div class="showCardImgimg">
+            <div id="saveToImg">*长按电子健康证可保存到相册<div class="closeModel">关闭</div></div>
+            <img src="" />
+        </div>
+    </div>
+    <div class="showCardImgMask"></div>
+    
+    <div class="other-intro">
+        <!-- 医院介绍内容可以在这里添加 -->
+    </div>
+    
+    <div class="page-foot">
+        <div id="tjyy">体检预约</div>
+        <div id="yyjs">医院介绍</div>
+    </div>
+	  <!-- 下载按钮 -->
+    <button id="downloadBtn" onclick="downloadScreenshot()">下载</button>
+    <!-- 隐藏按钮 -->
+    <button id="hideBtn" onclick="hideButtons()">隐藏</button>
+	
+</body>
+</html>

@@ -1,0 +1,52 @@
+/* 基础样式 */
+body,html{ overflow-x:hidden; }
+body { margin: 0; padding: 0; font-size: 12px; padding-bottom:40px; }
+.hosp-intro, .other-intro { padding: 10px; }
+.hosp-intro img, .other-intro img { width: 100%; }
+
+/* 健康证卡片样式 */
+.cardinfo { display: flex; justify-content: center; margin: 20px 0 0 0; font-size: 14px; }
+.cardinfo .card { width: 350px; height: 220px; position: relative; }
+.card .info { width: 200px; padding: 0 10px; position:absolute; z-index:999; }
+.card .card-bg{ position:absolute;width:350px;height:220px;z-index:1;left:0;top:0; }
+.a { text-decoration: none; }
+.card .bh { margin-top: 50px; white-space: nowrap; }
+.card .xm span { display: inline-block; width: calc(50%); }
+.card .info div { margin-bottom: 7px; }
+.card .headimg { position: absolute; right: 20px; top: 60px; width: 100px; height: 120px; z-index:999; }
+.cardinfo .hosp { position: absolute; bottom: 7px; margin-left: 10px; color: #fff; z-index:999; }
+.cardinfo .ygqimg { transform: rotate(-40deg); width: 130px; position: absolute; right: calc(50% - 65px); top: calc(50% - 20px); z-index:999; }
+
+/* 使用须知卡片样式 */
+.cardinfo-r{ display: flex; justify-content: center; margin:5px 0 20px 0; font-size: 14px; }
+.cardinfo-r .card-r{ width: 350px; height: 220px; position: relative; border: 1px solid #d4d4d4; border-radius: 10px; }
+.cardinfo-r .card-r .title{ text-align: center; font-weight: bold; line-height: 50px; font-size: 16px; word-spacing: 3px; }
+.cardinfo-r .card-r .card-ctx{ display: flex; height: 100px; width: 100%;margin-left:10px; }
+.cardinfo-r .card-r .card-ctx #qrcode{ width: 100px !important; height: 100px !important; text-align: center; font-size: 16px; display: flex; align-items: center; justify-content: center;margin-left:10px; }
+.cardinfo-r .card-r .card-ctx #qrcode img{ width: 110px !important; height: 110px !important; }
+
+.cardinfo-r .card-r .card-ctx .card-ctx-desc{ width: calc(100% - 120px); line-height: 20px; margin-right:10px;padding: 10px; margin-left: 20px; margin-top: -10px; }
+.cardinfo-r .card-r .sign{ display: flex; text-align: center; }
+.cardinfo-r .card-r .sign .first{ width: 110px; padding: 10px 0px; text-align: center; box-sizing: border-box;margin-left:15px; }
+.cardinfo-r .card-r .sign .data{ padding: 10px; flex: 1; text-align: left;margin-left:7px; }
+.cardinfo-r .card-r .sign .data span{ color: red; }
+.cardinfo-r .card-r .bottom{ position: absolute; bottom: 0; width: 100%; text-align: center; background-color: #01a6e6; line-height: 30px; border-radius: 0 0 10px 10px; color: #FFFFFF; }
+.bottom2{
+    background-color: #243B7E !important;
+}
+/* 底部导航样式 */
+.page-foot { position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; height: 50px; line-height: 50px; border-top: 1px solid #f2f2f2; text-align: center; background-color: #fff; }
+.page-foot div { width: 50%; border-right: 1px solid #f2f2f2; }
+.page-foot div:last-child { border-right: 0px; }
+
+/* 按钮样式 */
+.applyyj{ text-align: center;background-color: #eba753;color: #ffffff;height: 40px;line-height: 40px;border-radius: 10px;width: calc(100% - 80px);margin-left: 40px;margin-top: 20px; }
+.applyyj2{background-color: #243B7E !important;color: #ffffff !important;}
+.applyyj3{background-color: #BCC3D8 !important;color: #243B7E !important;}
+/* 弹窗样式 */
+.showCardImg{ z-index: 9999999; position: fixed; height: 100%; width: 100%; left: 0; top: 0; display: none; }
+.showCardImgMask{ position: fixed; z-index: 9998; width: 100%; height: 100%; top:0; left: 0; background-color: #515151; opacity: 0.4; overflow: none; display: none; }
+.showCardImgimg{ width: 80%; margin-left: 10%; margin-top: 20%; background-color: #FFFFFF; border-radius: 10px; padding-bottom: 20px; }
+.showCardImgimg img{ width: 100%; }
+.closeModel{ float: right; color: #007AFF; padding: 0 20px; }
+#saveToImg{ color: red; margin-left: 20px; padding: 10px 0; }
